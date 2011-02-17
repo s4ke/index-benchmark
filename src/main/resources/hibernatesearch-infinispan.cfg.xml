@@ -150,8 +150,8 @@ MA  02110-1301, USA.
                     <property name="dataColumnType" value="MEDIUMBLOB"/>
 
                     <property name="idColumnType" value="VARCHAR(256)"/>
-                    <property name="idColumnName" value="idCol"/>
-                    <property name="dataColumnName" value="dataCol"/>
+                    <property name="idColumnName" value="id"/>
+                    <property name="dataColumnName" value="data"/>
                     <property name="stringsTableNamePrefix" value="HibernateSearch"/>
 
                     <property name="timestampColumnName" value="timestampCol"/>
@@ -196,8 +196,8 @@ MA  02110-1301, USA.
                     <property name="dataColumnType" value="MEDIUMBLOB"/>
 
                     <property name="idColumnType" value="VARCHAR(256)"/>
-                    <property name="idColumnName" value="idCol"/>
-                    <property name="dataColumnName" value="dataCol"/>
+                    <property name="idColumnName" value="id"/>
+                    <property name="dataColumnName" value="data"/>
                     <property name="stringsTableNamePrefix" value="HibernateSearch"/>
 
                     <property name="timestampColumnName" value="timestampCol"/>
