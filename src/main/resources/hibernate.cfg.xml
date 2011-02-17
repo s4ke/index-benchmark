@@ -24,23 +24,39 @@ MA  02110-1301, USA.
 "http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
 <hibernate-configuration>
     <session-factory>
+
         <property name="hibernate.connection.driver_class">${jdbc.driver_class}</property>
         <property name="hibernate.connection.password">${jdbc.password}</property>
         <property name="hibernate.connection.url">${jdbc.url}</property>
         <property name="hibernate.connection.username">${jdbc.username}</property>
         <property name="hibernate.dialect">${hibernate.dialect}</property>
-        <property name="hibernate.search.default.indexwriter.batch.ram_buffer_size">50</property>
-        <property name="hibernate.search.default.indexwriter.batch.merge_factor">30</property>
+
         <property name="hibernate.search.default.indexBase">indexes/index-en</property>
         <property name="hibernate.search.default.directory_provider">org.hibernate.search.store.FSDirectoryProvider</property>
-        <!-- property name="hibernate.search.default.directory_provider">infinispan</property>
-        <property name="hibernate.search.infinispan.configuration_resourcename">hibernatesearch-infinispan.cfg.xml</property -->
+
+        <!-- Some Lucene tuning for writing performance and limit memory consumption (still high requirements!) -->
+        <property name="hibernate.search.default.indexwriter.ram_buffer_size">64</property>
+        <property name="hibernate.search.default.indexwriter.merge_factor">20</property>
+        <property name="hibernate.search.default.indexwriter.max_merge_docs">50000</property>
+        <property name="hibernate.search.default.indexwriter.use_compound_file">false</property>
+        <property name="hibernate.search.default.indexwriter.merge_max_optimize_size">40</property>
+        <property name="hibernate.search.default.indexwriter.merge_max_size">40</property>
+        <property name="hibernate.search.default.indexwriter.merge_min_size">30</property>
+        <property name="hibernate.search.default.locking_strategy">native</property>
+
+        <!-- Enable and configure Infinispan Lucene integration
+        <property name="hibernate.search.default.directory_provider">infinispan</property>
+        <property name="hibernate.search.infinispan.configuration_resourcename">hibernatesearch-infinispan.cfg.xml</property>
         <property name="hibernate.search.default.chunk_size">7340032</property>
+        -->
+
         <property name="hibernate.connection.provider_class">org.hibernate.connection.C3P0ConnectionProvider</property>
         <property name="hibernate.c3p0.min_size">10</property>
         <property name="hibernate.c3p0.max_size">25</property>
         <property name="hibernate.c3p0.timeout">1800</property>
         <property name="hibernate.c3p0.max_statements">50</property>
-        <mapping class="com.ucieffe.model.Text" />
+
+        <mapping class="org.ucieffe.model.Text" />
+
     </session-factory>
 </hibernate-configuration>

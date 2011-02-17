@@ -16,19 +16,18 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA  02110-1301, USA.
  */
-package com.ucieffe.index;
+package org.ucieffe.index;
 
-import java.util.Date;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
 
 import org.hibernate.CacheMode;
-import org.hibernate.search.MassIndexer;
 import org.hibernate.search.batchindexing.MassIndexerProgressMonitor;
 import org.hibernate.search.impl.SimpleIndexingProgressMonitor;
 import org.hibernate.search.jpa.FullTextEntityManager;
-import org.hibernate.search.jpa.impl.FullTextEntityManagerImpl;
-
-import com.ucieffe.model.Text;
-import com.ucieffe.util.EntityManagerUtils;
+import org.hibernate.search.jpa.Search;
+import org.ucieffe.model.Text;
 
 /**
  * Starts a batch operation to rebuild the Lucene index out of the database data.
@@ -40,27 +39,22 @@ public class WikipediaMassIndexer {
 
 	public static void main(String[] args) {
 
-		FullTextEntityManager ftEntityManager = new FullTextEntityManagerImpl( EntityManagerUtils.getEntityManagerInstance() );
+		EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory( "wikipedia" );
+		EntityManager entityManager = entityManagerFactory.createEntityManager();
+		FullTextEntityManager ftEntityManager = Search.getFullTextEntityManager( entityManager );
 
-		MassIndexerProgressMonitor monitor = new SimpleIndexingProgressMonitor( 1500 );
-		MassIndexer massIndexer = ftEntityManager.createIndexer( Text.class );
-		try {
-			massIndexer
-					.purgeAllOnStart( true )
-					.optimizeAfterPurge( true )
-					.optimizeOnFinish( true )
-					.batchSizeToLoadObjects( 35 )
-					.threadsForSubsequentFetching( 3 )
-					.threadsToLoadObjects( 8 )
-					.threadsForIndexWriter( 4 )
-					.progressMonitor( monitor )
-					.cacheMode( CacheMode.IGNORE )
-					.startAndWait();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} finally {
-			System.out.println( "Ended at: " + new Date() );
-		}
+		MassIndexerProgressMonitor monitor = new SimpleIndexingProgressMonitor( 5000 );
+		ftEntityManager.createIndexer( Text.class )
+			.purgeAllOnStart( true )
+			.optimizeAfterPurge( true )
+			.optimizeOnFinish( true )
+//			.limitIndexedObjectsTo( 1000000 ) // to try it out without waiting 30 minutes
+			.batchSizeToLoadObjects( 30 )
+			.threadsForSubsequentFetching( 3 )
+			.threadsToLoadObjects( 5 )
+			.threadsForIndexWriter( 3 )
+			.progressMonitor( monitor )
+			.cacheMode( CacheMode.IGNORE )
+			.start();
 	}
 }

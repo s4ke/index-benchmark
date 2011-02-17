@@ -9,7 +9,8 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import javax.persistence.EntityManager;
 
-import com.ucieffe.model.Text;
+import org.ucieffe.model.Text;
+
 import com.ucieffe.util.EntityManagerUtils;
 
 /**

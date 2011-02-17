@@ -37,10 +37,8 @@
 	<property name="res.main.src.dir" value="${src.dir}/main/resources" />
 	<property name="java.main.src.dir" value="${src.dir}/main/java" />
 
-	<property name="classname.main" value="com.ucieffe.index.WikipediaMassIndexer" />
-
 	<property file="db.properties" />
-
+	<property name="classname.main" value="org.ucieffe.index.WikipediaMassIndexer" />
 
 	<target name="download-ivy">
 		<mkdir dir="${cache.dir}" />
@@ -101,7 +99,7 @@
 		<!--TODO remove Ivy & mwdumper & Wikipedia dumps & database data but ASK FOR CONFIRMATION unless some automation property is set -->
 	</target>
 
-	<target name="import-wikipedia" depends="download-mwdumper-tool,download-wikipedia,have-empty-schema" description="--> clean the ivy cache">
+	<target name="import-wikipedia" depends="download-mwdumper-tool,download-wikipedia,have-empty-schema" description="--> Imports the Wikipedia database">
 		<!--TODO invoke mwdumper with appropriate parameters -->
 		<!--TODO manage windows execution -->
 		<!--TODO manage postgresql database version-->
@@ -221,30 +219,48 @@
 		</jar>
 	</target>
 
-	<target name="run-indexing" depends="archive">
+	<target name="run-indexing" depends="archive" description="Start indexing all existing data from database">
+		<echo>Indexing database ${jdbc.schemaname}</echo>
 		<artifact:pom id="mypom" file="pom.xml" />
 		<artifact:dependencies pathid="dependency.classpath" filesetId="dependency.fileset" useScope="runtime">
 			<pom refid="mypom" />
 		</artifact:dependencies>
 
-		<java fork="true" dir="${dist.dir}" classname="${classname.main}">
+		<java fork="true" dir="${dist.dir}" classname="${classname.main}" maxmemory="2500m">
+			<sysproperty key="DEBUG" value="true" />
 			<arg value="-h" />
-			<jvmarg value="-Xms2500m" />
-			<jvmarg value="-Xmx2500m" />
+			<jvmarg value="-Xms3000m" />
+			<jvmarg value="-Xmx3000m" />
 			<jvmarg value="-da" />
-			<jvmarg value="-Xverify:none" />
+			<jvmarg value="-XX:+AggressiveOpts" />
 			<jvmarg value="-XX:+CMSIncrementalMode" />
 			<jvmarg value="-XX:+UseConcMarkSweepGC" />
+			<jvmarg value="-XX:+UseCompressedOops" />
+			<jvmarg value="-Xbatch" />
+			<jvmarg value="-server" />
 			<classpath>
-				<pathelement location="${dist.dir}/${mypom.artifactId}-${mypom.version}.jar" />
+				<pathelement location="${mypom.build.directory}/${mypom.artifactId}-${mypom.version}.jar" />
 				<path refid="dependency.classpath" />
 			</classpath>
 		</java>
 	</target>
 
+	<target name="run-query" depends="archive" description="Start some sample queries">
+		<echo>Running query on ${jdbc.schemaname}</echo>
 
-	<target name="help">
-		<echo>TODO ${ant.version}</echo>
+		<artifact:pom id="mypom" file="pom.xml" />
+		<artifact:dependencies pathid="dependency.classpath" filesetId="dependency.fileset" useScope="runtime">
+			<pom refid="mypom" />
+		</artifact:dependencies>
+
+		<java fork="true" classname="org.ucieffe.index.QueryTester">
+			<jvmarg value="-Xms2900m" />
+			<jvmarg value="-Xmx2900m" />
+			<classpath>
+				<pathelement location="${dist.dir}/${mypom.artifactId}-${mypom.version}.jar" />
+				<path refid="dependency.classpath" />
+			</classpath>
+		</java>
 	</target>
 
 </project>

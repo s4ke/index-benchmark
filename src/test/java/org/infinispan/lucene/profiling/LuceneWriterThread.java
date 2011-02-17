@@ -8,8 +8,8 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 
 import org.apache.lucene.store.Directory;
+import org.ucieffe.model.Text;
 
-import com.ucieffe.model.Text;
 
 /**
  * LuceneWriterThread is going to perform searches on the Directory until it's
@@ -43,10 +43,10 @@ public class LuceneWriterThread extends LuceneUserThread {
 			Text text1 = texts.get(0);
 			Text text2 = texts.get(1);
 
-			String oldText1 = text1.getOldText();
-			String oldText2 = text2.getOldText();
-			text1.setOldText(oldText2);
-			text2.setOldText(oldText1);
+			String oldText1 = text1.getText();
+			String oldText2 = text2.getText();
+			text1.setText(oldText2);
+			text2.setText(oldText1);
 			
 			entityManager.merge(text1);
 			entityManager.merge(text2);

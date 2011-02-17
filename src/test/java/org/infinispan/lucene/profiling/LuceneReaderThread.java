@@ -20,8 +20,7 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.util.Version;
 import org.infinispan.lucene.profiling.LuceneUserThread;
-
-import com.ucieffe.model.Text;
+import org.ucieffe.model.Text;
 
 /**
  * LuceneReaderThread is going to perform searches on the Directory until it's
@@ -59,34 +58,35 @@ public class LuceneReaderThread extends LuceneUserThread {
 
 
 		for (Text text : texts) {
-			System.out.println("Text-id:" + text.getOldId());
-			System.out.println("Text-text:" + text.getOldText());
+			System.out.println("Text-id:" + text.getId());
+			System.out.println("Text-text:" + text.getText());
 			
-	        Analyzer analyzer = new StopAnalyzer(Version.LUCENE_30);
-            TokenStream stream = analyzer.tokenStream("contents", new StringReader(text.getOldText()));
-            OffsetAttribute offsetAttribute = stream.getAttribute(OffsetAttribute.class);
-            TermAttribute termAttribute = stream.getAttribute(TermAttribute.class);
+			Analyzer analyzer = new StopAnalyzer( Version.LUCENE_30 );
+			TokenStream stream = analyzer.tokenStream( "contents", new StringReader( text.getText() ) );
+			OffsetAttribute offsetAttribute = stream.getAttribute( OffsetAttribute.class );
+			TermAttribute termAttribute = stream.getAttribute( TermAttribute.class );
 
-            while (stream.incrementToken()) {
-                int startOffset = offsetAttribute.startOffset();
-                int endOffset = offsetAttribute.endOffset();
-                String term = termAttribute.term();
+			while ( stream.incrementToken() ) {
+				int startOffset = offsetAttribute.startOffset();
+				int endOffset = offsetAttribute.endOffset();
+				String term = termAttribute.term();
 
-                System.out.print("[" + term + "] ");
+				System.out.print( "[" + term + "] " );
 
-				Query query = new TermQuery(new Term("oldText", term
-						.toLowerCase().trim()));
-				TopDocs docs = searcher.search(query, null, 1);
+				Query query = new TermQuery( new Term( "oldText", term
+						.toLowerCase().trim() ) );
+				TopDocs docs = searcher.search( query, null, 1 );
 
-				System.out.println("Number of result:" + docs.totalHits);
+				System.out.println( "Number of result:" + docs.totalHits );
 
-				System.err.println(state.incrementIndexSearchesCount(1));;
+				System.err.println( state.incrementIndexSearchesCount( 1 ) );
+				;
 
-            }            
+			}
 
 		}
 		// put the strings back at their place:
-		state.textsInIndex.addAll(texts);
+		state.textsInIndex.addAll( texts );
 	}
 
 	protected void refreshIndexReader() throws CorruptIndexException,
