@@ -16,7 +16,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA  02110-1301, USA.
  */
-package com.ucieffe.model;
+package org.ucieffe.model;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;

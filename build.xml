@@ -36,8 +36,6 @@
 
 	<property file="db.properties" />
 
-
-
 	<target name="download-ivy">
 		<mkdir dir="${cache.dir}" />
 		<!-- download Ivy from web site so that it can be used even without any special installation -->
@@ -177,7 +175,7 @@
 			<pom refid="mypom" />
 		</artifact:dependencies>
 		
-		<java fork="true" classname="com.ucieffe.index.WikipediaMassIndexer" maxmemory="2500m">
+		<java fork="true" classname="org.ucieffe.index.WikipediaMassIndexer" maxmemory="2500m">
 			<sysproperty key="DEBUG" value="true" />
 			<arg value="-h" />
 			<jvmarg value="-Xms2500m" />

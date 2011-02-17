@@ -16,7 +16,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA  02110-1301, USA.
  */
-package com.ucieffe.index;
+package org.ucieffe.index;
 
 import java.util.Date;
 
@@ -30,8 +30,8 @@ import org.hibernate.search.batchindexing.MassIndexerProgressMonitor;
 import org.hibernate.search.impl.SimpleIndexingProgressMonitor;
 import org.hibernate.search.jpa.FullTextEntityManager;
 import org.hibernate.search.jpa.impl.FullTextEntityManagerImpl;
+import org.ucieffe.model.Text;
 
-import com.ucieffe.model.Text;
 
 /**
  * Starts a batch operation to rebuild the Lucene index out of the database data.
