@@ -32,12 +32,12 @@ public class Text {
 	private String oldText;
 
 	@Id
-	public Integer getOldId() {return this.oldId;}
-	public void setOldId(Integer oldId) {this.oldId = oldId;}
+	public Integer getOldId() { return this.oldId; }
+	public void setOldId(Integer oldId) { this.oldId = oldId; }
 
 	@Field
-	public String getOldText() {return this.oldText;}
-	public void setOldText(String oldText) {this.oldText = oldText;}
+	public String getOldText() { return this.oldText; }
+	public void setOldText(String oldText) { this.oldText = oldText; }
 
 }
 

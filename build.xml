@@ -167,7 +167,7 @@
 		</artifact:mvn>
 	</target>
 
-	<target name="run-indexing" depends="package">
+	<target name="run-indexing" depends="package" description="Start indexing all existing data from database">
 		<echo>Indexing database ${jdbc.schemaname}</echo>
 
 		<artifact:pom id="mypom" file="pom.xml" />

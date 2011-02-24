@@ -130,19 +130,22 @@ MA  02110-1301, USA.
                 replTimeout="25000" />
         </clustering>
         <loaders passivation="false" shared="true" preload="true">
-            <loader class="org.infinispan.loaders.jdbc.stringbased.JdbcStringBasedCacheStore" fetchPersistentState="true"
-                    ignoreModifications="false" purgeOnStartup="false">
+            <loader class="org.infinispan.loaders.jdbc.stringbased.JdbcStringBasedCacheStore"
+                fetchPersistentState="true"
+                ignoreModifications="false" purgeOnStartup="false">
 
                 <!-- See the documentation for more configuration examples and flags. -->
                 <properties>
-                    <property name="key2StringMapperClass" value="org.infinispan.lucene.LuceneKey2StringMapper"/>
+                    <property name="key2StringMapperClass"
+                        value="org.infinispan.lucene.LuceneKey2StringMapper"/>
+                    
                     <property name="createTableOnStart" value="true"/>
 
                     <!-- Settings for MySQL: -->
-                    <property name="driverClass"  value="com.mysql.jdbc.Driver" />
-                    <property name="connectionUrl" value="jdbc:mysql://localhost/indexerdb?useCursorFetch=true&amp;useServerPrepStmts=true"/>
-                    <property name="userName" value="indexer"/>
-                    <property name="password" value="indexer"/>
+                    <property name="driverClass"  value="${jdbc.driver_class}" />
+                    <property name="connectionUrl" value="${jdbc.url}" />
+                    <property name="userName" value="${jdbc.username}" />
+                    <property name="password" value="${jdbc.password}" />
                     
                     <property name="connectionFactoryClass"
                               value="org.infinispan.loaders.jdbc.connectionfactory.PooledConnectionFactory"/>
@@ -185,10 +188,10 @@ MA  02110-1301, USA.
                     <property name="createTableOnStart" value="true"/>
 
                     <!-- Settings for MySQL: -->
-                    <property name="driverClass"  value="com.mysql.jdbc.Driver" />
-                    <property name="connectionUrl" value="jdbc:mysql://localhost/indexerdb?useCursorFetch=true&amp;useServerPrepStmts=true"/>
-                    <property name="userName" value="indexer"/>
-                    <property name="password" value="indexer"/>
+                    <property name="driverClass"  value="${jdbc.driver_class}" />
+                    <property name="connectionUrl" value="${jdbc.url}" />
+                    <property name="userName" value="${jdbc.username}" />
+                    <property name="password" value="${jdbc.password}" />
 
                     <property name="connectionFactoryClass"
                               value="org.infinispan.loaders.jdbc.connectionfactory.PooledConnectionFactory"/>
