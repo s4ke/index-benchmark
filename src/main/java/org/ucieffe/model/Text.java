@@ -18,24 +18,28 @@
  */
 package org.ucieffe.model;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Lob;
+import javax.persistence.Table;
 
 import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Indexed;
 
 @Entity
+@Table(name="text")
 @Indexed(index="lucene-index")
 public class Text {
 
 	private Integer oldId;
 	private String oldText;
 
-	@Id
+	@Id @Column(name="old_id")
 	public Integer getOldId() { return this.oldId; }
 	public void setOldId(Integer oldId) { this.oldId = oldId; }
 
-	@Field
+	@Field @Column(name="old_text") @Lob
 	public String getOldText() { return this.oldText; }
 	public void setOldText(String oldText) { this.oldText = oldText; }
 
