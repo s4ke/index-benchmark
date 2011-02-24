@@ -101,7 +101,7 @@
 		<!--TODO remove Ivy & mwdumper & Wikipedia dumps & database data but ASK FOR CONFIRMATION unless some automation property is set -->
 	</target>
 
-	<target name="import-wikipedia" depends="download-mwdumper-tool,download-wikipedia,have-empty-schema" description="--> clean the ivy cache">
+	<target name="import-wikipedia" depends="download-mwdumper-tool,download-wikipedia,have-empty-schema" description="--> Imports the Wikipedia database">
 		<!--TODO invoke mwdumper with appropriate parameters -->
 		<!--TODO manage windows execution -->
 		<!--TODO manage postgresql database version-->
