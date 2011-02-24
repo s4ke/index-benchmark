@@ -32,16 +32,16 @@ import org.hibernate.search.annotations.Indexed;
 @Indexed(index="lucene-index")
 public class Text {
 
-	private Integer oldId;
-	private String oldText;
+	private Integer id;
+	private String text;
 
 	@Id @Column(name="old_id")
-	public Integer getOldId() { return this.oldId; }
-	public void setOldId(Integer oldId) { this.oldId = oldId; }
+	public Integer getId() { return this.id; }
+	public void setId(Integer oldId) { this.id = oldId; }
 
 	@Field @Column(name="old_text") @Lob
-	public String getOldText() { return this.oldText; }
-	public void setOldText(String oldText) { this.oldText = oldText; }
+	public String getText() { return this.text; }
+	public void setText(String oldText) { this.text = oldText; }
 
 }
 
