@@ -30,9 +30,12 @@ MA  02110-1301, USA.
         <property name="hibernate.connection.username">${jdbc.username}</property>
         <property name="hibernate.dialect">${hibernate.dialect}</property>
 
-        <!-- Some Lucene tuning for writing performance -->
-        <property name="hibernate.search.default.indexwriter.batch.ram_buffer_size">50</property>
-        <property name="hibernate.search.default.indexwriter.batch.merge_factor">30</property>
+        <!-- Some Lucene tuning for writing performance and limit memory consumption (still high requirements!) -->
+        <property name="hibernate.search.default.indexwriter.batch.ram_buffer_size">100</property>
+        <property name="hibernate.search.default.indexwriter.batch.merge_factor">20</property>
+        <property name="hibernate.search.default.indexwriter.batch.max_merge_docs">1000000</property>
+        <property name="hibernate.search.default.indexwriter.use_compound_file">false</property>
+        <property name="hibernate.search.default.locking_strategy">native</property>
         
         <!-- Enable and configure Infinispan Lucene integration
         <property name="hibernate.search.default.directory_provider">infinispan</property>

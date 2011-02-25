@@ -92,7 +92,7 @@
 
 	<target name="clean-cache" depends="ask-cleaning,install-ivy" description="--> clean the ivy cache">
 		<condition property="dont.ask">
-				<equals arg1="y" arg2="${database.autoclenaup}" />
+			<equals arg1="y" arg2="${database.autoclenaup}" />
 		</condition>
 		<delete file="${mwdir.jar.file}" />
 		<delete file="${wikipedia.download.file}" />
@@ -133,7 +133,7 @@
 			</delete>
 		</sequential>
 	</macrodef>
-	
+
 	<macrodef name="sqlimport-helper">
 		<attribute name="rdbms" />
 		<attribute name="driver.refid" />
@@ -174,23 +174,42 @@
 		<artifact:dependencies pathid="dependency.classpath" filesetId="dependency.fileset" useScope="runtime">
 			<pom refid="mypom" />
 		</artifact:dependencies>
-		
-		<java fork="true" classname="org.ucieffe.index.WikipediaMassIndexer" maxmemory="2500m">
-			<sysproperty key="DEBUG" value="true" />
-			<arg value="-h" />
-			<jvmarg value="-Xms2500m" />
-			<jvmarg value="-Xmx2500m" />
+
+		<java fork="true" classname="org.ucieffe.index.WikipediaMassIndexer">
+			<jvmarg value="-Xms3000m" />
+			<jvmarg value="-Xmx3000m" />
 			<jvmarg value="-da" />
-			<jvmarg value="-Xverify:none" />
+			<jvmarg value="-XX:+AggressiveOpts" />
 			<jvmarg value="-XX:+CMSIncrementalMode" />
 			<jvmarg value="-XX:+UseConcMarkSweepGC" />
+			<jvmarg value="-XX:+OptimizeStringConcat" />
+			<jvmarg value="-XX:+UseCompressedStrings" />
+			<!-- No clue why, but G1 seems quite slower in this case:
+			<jvmarg value="-XX:+UnlockExperimentalVMOptions" />
+			<jvmarg value="-XX:+UseG1GC" />
+			-->
 			<classpath>
 				<pathelement location="${mypom.build.directory}/${mypom.artifactId}-${mypom.version}.jar" />
 				<path refid="dependency.classpath" />
 			</classpath>
 		</java>
 	</target>
-	
+
+	<target name="run-query" depends="package" description="Start some sample queries">
+		<echo>Running query on ${jdbc.schemaname}</echo>
+
+		<artifact:pom id="mypom" file="pom.xml" />
+		<artifact:dependencies pathid="dependency.classpath" filesetId="dependency.fileset" useScope="runtime">
+			<pom refid="mypom" />
+		</artifact:dependencies>
+
+		<java fork="true" classname="org.ucieffe.index.QueryTester" maxmemory="250m">
+			<classpath>
+				<pathelement location="${mypom.build.directory}/${mypom.artifactId}-${mypom.version}.jar" />
+				<path refid="dependency.classpath" />
+			</classpath>
+		</java>
+	</target>
 
 </project>
 

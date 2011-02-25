@@ -11,7 +11,7 @@ buildSrc/.gradle
 /build
 */build
 downloads-cache
-index
+/lucene-index
 
 # IntelliJ specific files/directories
 /out

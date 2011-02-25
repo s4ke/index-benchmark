@@ -43,11 +43,12 @@ public class WikipediaMassIndexer {
 		EntityManager entityManager = entityManagerFactory.createEntityManager();
 		FullTextEntityManager ftEntityManager = Search.getFullTextEntityManager( entityManager );
 
-		MassIndexerProgressMonitor monitor = new SimpleIndexingProgressMonitor( 1500 );
+		MassIndexerProgressMonitor monitor = new SimpleIndexingProgressMonitor( 5000 );
 		ftEntityManager.createIndexer( Text.class )
 			.purgeAllOnStart( true )
 			.optimizeAfterPurge( true )
 			.optimizeOnFinish( true )
+//			.limitIndexedObjectsTo( 10000 ) // to try it out without waiting 30 minutes
 			.batchSizeToLoadObjects( 35 )
 			.threadsForSubsequentFetching( 3 )
 			.threadsToLoadObjects( 8 )

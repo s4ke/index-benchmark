@@ -42,6 +42,11 @@ public class Text {
 	@Field @Column(name="old_text") @Lob
 	public String getText() { return this.text; }
 	public void setText(String oldText) { this.text = oldText; }
+	
+	@Override
+	public String toString() {
+		return "Text [id=" + id + ", text=" + text + "]";
+	}
 
 }
 
