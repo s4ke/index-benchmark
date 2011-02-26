@@ -52,7 +52,7 @@ public class WikipediaMassIndexer {
 			.batchSizeToLoadObjects( 35 )
 			.threadsForSubsequentFetching( 3 )
 			.threadsToLoadObjects( 8 )
-			.threadsForIndexWriter( 4 )
+			.threadsForIndexWriter( 6 )
 			.progressMonitor( monitor )
 			.cacheMode( CacheMode.IGNORE )
 			.start();
