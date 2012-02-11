@@ -39,7 +39,7 @@ public class LuceneReaderThread extends LuceneUserThread {
 	protected IndexReader indexReader;
 
 	LuceneReaderThread(Directory dir, SharedState state) {
-		super(dir, state);
+		super( dir, state );
 	}
 
 	@Override
@@ -47,20 +47,19 @@ public class LuceneReaderThread extends LuceneUserThread {
 		// take ownership of some strings, so that no other thread will change
 		// status for these:
 		List<Text> texts = new ArrayList<Text>();
-		int numElements = state.textsInIndex.drainTo(texts, 1);
-		
-		if(numElements == 0) {
-//			System.out.println("No elements found.");
+		int numElements = state.textsInIndex.drainTo( texts, 1 );
+
+		if ( numElements == 0 ) {
+			// System.out.println("No elements found.");
 			return;
 		}
 
 		refreshIndexReader();
 
+		for ( Text text : texts ) {
+			System.out.println( "Text-id:" + text.getId() );
+			System.out.println( "Text-text:" + text.getText() );
 
-		for (Text text : texts) {
-			System.out.println("Text-id:" + text.getId());
-			System.out.println("Text-text:" + text.getText());
-			
 			Analyzer analyzer = new StopAnalyzer( Version.LUCENE_30 );
 			TokenStream stream = analyzer.tokenStream( "contents", new StringReader( text.getText() ) );
 			OffsetAttribute offsetAttribute = stream.getAttribute( OffsetAttribute.class );
@@ -91,24 +90,25 @@ public class LuceneReaderThread extends LuceneUserThread {
 
 	protected void refreshIndexReader() throws CorruptIndexException,
 			IOException {
-		if (indexReader == null) {
-			indexReader = IndexReader.open(directory, true);
-		} else {
+		if ( indexReader == null ) {
+			indexReader = IndexReader.open( directory, true );
+		}
+		else {
 			IndexReader before = indexReader;
 			indexReader = indexReader.reopen();
-			if (before != indexReader) {
+			if ( before != indexReader ) {
 				before.close();
 			}
 		}
-		if (searcher != null) {
+		if ( searcher != null ) {
 			searcher.close();
 		}
-		searcher = new IndexSearcher(indexReader);
+		searcher = new IndexSearcher( indexReader );
 	}
 
 	@Override
 	protected void cleanup() throws IOException {
-		if (indexReader != null)
+		if ( indexReader != null )
 			indexReader.close();
 	}
 

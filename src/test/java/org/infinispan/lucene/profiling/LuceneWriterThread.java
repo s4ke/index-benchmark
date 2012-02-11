@@ -5,11 +5,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 
 import org.apache.lucene.store.Directory;
 import org.ucieffe.model.Text;
-
 
 /**
  * LuceneWriterThread is going to perform searches on the Directory until it's
@@ -24,39 +24,46 @@ import org.ucieffe.model.Text;
  */
 public class LuceneWriterThread extends LuceneUserThread {
 
-	EntityManager entityManager;
+	EntityManagerFactory entityManagerFactory;
 
 	LuceneWriterThread(Directory dir, SharedState state,
-			EntityManager entityManager) {
-		super(dir, state);
-		this.entityManager = entityManager;
+			EntityManagerFactory entityManagerFactory) {
+		super( dir, state );
+		this.entityManagerFactory = entityManagerFactory;
 	}
 
 	@Override
 	protected void testLoop() throws IOException {
 		List<Text> texts = new ArrayList<Text>();
-		int numElements = state.textsOutOfIndex.drainTo(texts, 2);
+		int numElements = state.textsOutOfIndex.drainTo( texts, 2 );
 
-		if (numElements == 2) {
-			EntityTransaction transaction = entityManager.getTransaction();
-			transaction.begin();
-			Text text1 = texts.get(0);
-			Text text2 = texts.get(1);
+		if ( numElements == 2 ) {
+			EntityManager entityManager = entityManagerFactory.createEntityManager();
+			try {
+				EntityTransaction transaction = entityManager.getTransaction();
+				transaction.begin();
+				Text text1 = texts.get( 0 );
+				Text text2 = texts.get( 1 );
 
-			String oldText1 = text1.getText();
-			String oldText2 = text2.getText();
-			text1.setText(oldText2);
-			text2.setText(oldText1);
-			
-			entityManager.merge(text1);
-			entityManager.merge(text2);
+				String oldText1 = text1.getText();
+				String oldText2 = text2.getText();
+				text1.setText( oldText2 );
+				text2.setText( oldText1 );
 
-			transaction.commit();
-			
-			state.textsInIndex.addAll(texts);
-			state.incrementIndexWriterTaskCount(numElements);
-		} else {
-//			System.out.println("Only found " + numElements + " elements.");
+				entityManager.merge( text1 );
+				entityManager.merge( text2 );
+
+				transaction.commit();
+			}
+			finally {
+				entityManager.close();
+			}
+
+			state.textsInIndex.addAll( texts );
+			state.incrementIndexWriterTaskCount( numElements );
+		}
+		else {
+			// System.out.println("Only found " + numElements + " elements.");
 		}
 	}
 

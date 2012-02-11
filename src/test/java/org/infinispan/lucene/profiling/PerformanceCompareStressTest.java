@@ -27,6 +27,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
+
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.hibernate.search.SearchFactory;
@@ -39,8 +43,6 @@ import org.infinispan.manager.CacheContainer;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
-
-import com.ucieffe.util.EntityManagerUtils;
 
 /**
  * PerformanceCompareStressTest is useful to get an idea on relative performance between Infinispan
@@ -60,98 +62,117 @@ import com.ucieffe.util.EntityManagerUtils;
 @Test(groups = "profiling", testName = "lucene.profiling.PerformanceCompareStressTest", sequential = true)
 public class PerformanceCompareStressTest {
 
-   /**
-    * The number of terms in the dictionary used as source of terms by the IndexWriter to produce
-    * new documents
-    */
-   private static final int DICTIONARY_SIZE = 1 * 20;
+	/**
+	 * The number of terms in the dictionary used as source of terms by the IndexWriter to produce
+	 * new documents
+	 */
+	private static final int DICTIONARY_SIZE = 1 * 20;
 
-   /** Concurrent Threads in tests */
-   private static final int READER_THREADS = 5;
-   private static final int WRITER_THREADS = 1;
-   
-   private static final int CHUNK_SIZE = 512 * 1024;
+	/** Concurrent Threads in tests */
+	private static final int READER_THREADS = 5;
+	private static final int WRITER_THREADS = 1;
 
-   private static final String indexName = "indexes/index-en/index";
+	private static final int CHUNK_SIZE = 512 * 1024;
 
-   private static final long DURATION_MS = 2 * 60 * 100;
+	private static final String indexName = "indexes/index-en/index";
 
-   private Cache cache;
+	private static final long DURATION_MS = 2 * 60 * 100;
 
-//   private EmbeddedCacheManager cacheFactory;
+	private Cache cache;
 
+	// private EmbeddedCacheManager cacheFactory;
 
-   @Test(enabled=true)
-   public void profileTestFSDirectory() throws InterruptedException, IOException {
-      File indexDir = new File(new File("."), indexName);
-      FSDirectory dir = FSDirectory.open(indexDir);
-      stressTestDirectory(dir, "FSDirectory");
-   }
-   
+	@Test(enabled = true)
+	public void profileTestFSDirectory() throws InterruptedException, IOException {
+		File indexDir = new File( new File( "." ), indexName );
+		FSDirectory dir = FSDirectory.open( indexDir );
+		EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory( "wikipedia" );
+		try {
+			stressTestDirectory( dir, "FSDirectory", entityManagerFactory );
+		}
+		finally {
+			entityManagerFactory.close();
+		}
+	}
 
-   @Test(enabled=false)
-   public void profileInfinispanLocalDirectory() throws InterruptedException, IOException {
-      CacheContainer cacheContainer = CacheTestSupport.createLocalCacheManager();
-      try {
-         cache = cacheContainer.getCache();
-         InfinispanDirectory dir = new InfinispanDirectory(cache, cache, cache, indexName, CHUNK_SIZE);
-         stressTestDirectory(dir, "InfinispanLocal");
-//         verifyDirectoryState();
-      } finally {
-         cacheContainer.stop();
-      }
-   }
+	@Test(enabled = false)
+	public void profileInfinispanLocalDirectory() throws InterruptedException, IOException {
+		EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory( "wikipedia" );
+		try {
+			CacheContainer cacheContainer = CacheTestSupport.createLocalCacheManager();
 
-   @Test(enabled=false)//to prevent invocations from some versions of TestNG
-   public static void stressTestDirectory(Directory dir, String testLabel) throws InterruptedException, IOException {
-      SharedState state = new SharedState(DICTIONARY_SIZE);
-//      CacheTestSupport.initializeDirectory(dir);
-      ExecutorService e = Executors.newFixedThreadPool(READER_THREADS + WRITER_THREADS);
-      for (int i = 0; i < READER_THREADS; i++) {
-         e.execute(new LuceneReaderThread(dir, state));
-      }
+			try {
+				cache = cacheContainer.getCache();
+				InfinispanDirectory dir = new InfinispanDirectory( cache, cache, cache, indexName, CHUNK_SIZE );
+				stressTestDirectory( dir, "InfinispanLocal", entityManagerFactory );
+				// verifyDirectoryState();
+			}
+			finally {
+				cacheContainer.stop();
+			}
+		}
+		finally {
+			entityManagerFactory.close();
+		}
+	}
 
-      for (int i = 0; i < WRITER_THREADS; i++) {
-         e.execute(new LuceneWriterThread(dir, state, EntityManagerUtils
-        			.getEntityManagerInstance()));
-      }
-      e.shutdown();
-      state.startWaitingThreads();
-      Thread.sleep(DURATION_MS);
-      long searchesCount = state.incrementIndexSearchesCount(0);
-      long writerTaskCount = state.incrementIndexWriterTaskCount(0);
-      state.quit();
-      boolean terminatedCorrectly = e.awaitTermination(20, TimeUnit.SECONDS);
-      Assert.assertTrue(terminatedCorrectly);
-      System.out.println("Test " + testLabel + " run in " + DURATION_MS + "ms:\n\tSearches: " + searchesCount + "\n\t" + "Writes: "
-               + writerTaskCount);
-   }
-   
+	@Test(enabled = false)
+	// to prevent invocations from some versions of TestNG
+	public static void stressTestDirectory(Directory dir, String testLabel, EntityManagerFactory entityManagerFactory) throws InterruptedException, IOException {
+		SharedState state = new SharedState( DICTIONARY_SIZE, entityManagerFactory );
+		// CacheTestSupport.initializeDirectory(dir);
+		ExecutorService e = Executors.newFixedThreadPool( READER_THREADS + WRITER_THREADS );
+		for ( int i = 0; i < READER_THREADS; i++ ) {
+			e.execute( new LuceneReaderThread( dir, state ) );
+		}
 
-//   @BeforeMethod
-//   public void beforeTest() {
-//      cacheFactory = TestCacheManagerFactory.createClusteredCacheManager(CacheTestSupport.createTestConfiguration());
-//      cacheFactory.start();
-//      cache = cacheFactory.getCache();
-//      cache.clear();
-//   }
-//
-   @AfterMethod
-   public void afterTest() {
-//      TestingUtil.killCaches(cache);
-//	   cache.stop();
-//	   cacheFactory.stop();
-//      TestingUtil.killCacheManagers(cacheFactory);
-//      TestingUtil.recursiveFileRemove(indexName);
-	   System.out.println("Optimizing index in progress...");
-	   FullTextEntityManager fullTextSession = Search.getFullTextEntityManager(EntityManagerUtils.getEntityManagerInstance());
-	   SearchFactory searchFactory = fullTextSession.getSearchFactory();
+		for ( int i = 0; i < WRITER_THREADS; i++ ) {
+			e.execute( new LuceneWriterThread( dir, state, entityManagerFactory ) );
+		}
+		e.shutdown();
+		state.startWaitingThreads();
+		Thread.sleep( DURATION_MS );
+		long searchesCount = state.incrementIndexSearchesCount( 0 );
+		long writerTaskCount = state.incrementIndexWriterTaskCount( 0 );
+		state.quit();
+		boolean terminatedCorrectly = e.awaitTermination( 20, TimeUnit.SECONDS );
+		Assert.assertTrue( terminatedCorrectly );
+		System.out.println( "Test " + testLabel + " run in " + DURATION_MS + "ms:\n\tSearches: " + searchesCount + "\n\t" + "Writes: "
+				+ writerTaskCount );
+	}
 
-	   searchFactory.optimize();
-   }
-   
-//   private void verifyDirectoryState() {
-//      DirectoryIntegrityCheck.verifyDirectoryStructure(cache, indexName, true);
-//   }
+	// @BeforeMethod
+	// public void beforeTest() {
+	// cacheFactory = TestCacheManagerFactory.createClusteredCacheManager(CacheTestSupport.createTestConfiguration());
+	// cacheFactory.start();
+	// cache = cacheFactory.getCache();
+	// cache.clear();
+	// }
+	//
+	@AfterMethod
+	public void afterTest() {
+		// TestingUtil.killCaches(cache);
+		// cache.stop();
+		// cacheFactory.stop();
+		// TestingUtil.killCacheManagers(cacheFactory);
+		// TestingUtil.recursiveFileRemove(indexName);
+		System.out.println( "Optimizing index in progress..." );
+		EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory( "wikipedia" );
+		EntityManager entityManager = entityManagerFactory.createEntityManager();
+		try {
+
+			FullTextEntityManager fullTextSession = Search.getFullTextEntityManager( entityManager );
+			SearchFactory searchFactory = fullTextSession.getSearchFactory();
+
+			searchFactory.optimize();
+		}
+		finally {
+			entityManager.close();
+		}
+	}
+
+	// private void verifyDirectoryState() {
+	// DirectoryIntegrityCheck.verifyDirectoryStructure(cache, indexName, true);
+	// }
 
 }

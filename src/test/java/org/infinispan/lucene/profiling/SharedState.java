@@ -8,10 +8,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 
 import org.ucieffe.model.Text;
-
-import com.ucieffe.util.EntityManagerUtils;
 
 /**
  * SharedState is used by LuceneUserThread when used concurrently to coordinate
@@ -33,23 +32,30 @@ public class SharedState {
 	private final CountDownLatch startSignal = new CountDownLatch(1);
 
 	private int sizeObject;
+	private final EntityManagerFactory entityManagerFactory;
 
 	@SuppressWarnings("unchecked")
-	public SharedState(int sizeObject) {
+	public SharedState(int sizeObject, EntityManagerFactory entityManagerFactory) {
+		this.entityManagerFactory = entityManagerFactory;
 		if (sizeObject <= 0) {
 			throw new RuntimeException(
 					"sizeObject parameter must be greater than 0!");
 		}
 
 		this.sizeObject = sizeObject;
-		EntityManager entityManager = EntityManagerUtils
-				.getEntityManagerInstance();
 
+		EntityManager entityManager = entityManagerFactory.createEntityManager();
+		try {
+			
 		List<Text> texts = entityManager.createQuery(
 				"FROM Text ORDER BY oldId DESC").setMaxResults(this.sizeObject)
 				.getResultList();
 
 		textsOutOfIndex.addAll(texts);
+		}
+		finally {
+			entityManager.close();
+		}
 	}
 
 	public boolean needToQuit() {
