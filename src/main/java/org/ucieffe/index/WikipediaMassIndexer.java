@@ -40,21 +40,31 @@ public class WikipediaMassIndexer {
 	public static void main(String[] args) {
 
 		EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory( "wikipedia" );
-		EntityManager entityManager = entityManagerFactory.createEntityManager();
-		FullTextEntityManager ftEntityManager = Search.getFullTextEntityManager( entityManager );
-
-		MassIndexerProgressMonitor monitor = new SimpleIndexingProgressMonitor( 5000 );
-		ftEntityManager.createIndexer( Text.class )
-			.purgeAllOnStart( true )
-			.optimizeAfterPurge( true )
-			.optimizeOnFinish( true )
-//			.limitIndexedObjectsTo( 1000000 ) // to try it out without waiting 30 minutes
-			.batchSizeToLoadObjects( 30 )
-			.threadsForSubsequentFetching( 3 )
-			.threadsToLoadObjects( 5 )
-			.threadsForIndexWriter( 3 )
-			.progressMonitor( monitor )
-			.cacheMode( CacheMode.IGNORE )
-			.start();
+		try {
+			EntityManager entityManager = entityManagerFactory.createEntityManager();
+			FullTextEntityManager ftEntityManager = Search.getFullTextEntityManager( entityManager );
+	
+			MassIndexerProgressMonitor monitor = new SimpleIndexingProgressMonitor( 5000 );
+			ftEntityManager.createIndexer( Text.class )
+				.purgeAllOnStart( true )
+				.optimizeAfterPurge( true )
+				.optimizeOnFinish( true )
+				.limitIndexedObjectsTo( 10000 ) // to try it out without waiting 30 minutes
+				.batchSizeToLoadObjects( 30 )
+				.threadsForSubsequentFetching( 4 )
+				.threadsToLoadObjects( 8 )
+				.idFetchSize( Integer.MIN_VALUE ) // MySQL special weirdness
+				.threadsForIndexWriter( 3 )
+				.progressMonitor( monitor )
+				.cacheMode( CacheMode.IGNORE )
+				.startAndWait();
+		}
+		catch ( InterruptedException e ) {
+			e.printStackTrace();
+		}
+		finally {
+			entityManagerFactory.close();
+		}
+		
 	}
 }

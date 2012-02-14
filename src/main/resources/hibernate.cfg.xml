@@ -21,7 +21,7 @@ MA  02110-1301, USA.
 -->
 <!DOCTYPE hibernate-configuration PUBLIC
 "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
-"http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
+"http://www.jboss.org/dtd/hibernate/hibernate-configuration-3.0.dtd">
 <hibernate-configuration>
     <session-factory>
 
@@ -32,7 +32,6 @@ MA  02110-1301, USA.
         <property name="hibernate.dialect">${hibernate.dialect}</property>
 
         <property name="hibernate.search.default.indexBase">indexes/index-en</property>
-        <property name="hibernate.search.default.directory_provider">org.hibernate.search.store.FSDirectoryProvider</property>
 
         <!-- Some Lucene tuning for writing performance and limit memory consumption (still high requirements!) -->
         <property name="hibernate.search.default.indexwriter.ram_buffer_size">64</property>
