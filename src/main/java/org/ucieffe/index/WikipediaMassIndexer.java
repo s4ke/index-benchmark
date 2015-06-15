@@ -30,6 +30,7 @@ import javax.persistence.Persistence;
 
 import org.hibernate.search.genericjpa.JPASearchFactoryController;
 import org.hibernate.search.genericjpa.Setup;
+import org.hibernate.search.genericjpa.batchindexing.MassIndexerProgressMonitor;
 import org.hibernate.search.genericjpa.db.events.MySQLTriggerSQLStringSource;
 import org.hibernate.search.jpa.FullTextEntityManager;
 import org.ucieffe.model.Text;
@@ -88,8 +89,26 @@ public class WikipediaMassIndexer {
 
 		FullTextEntityManager ftEntityManager = searchFactoryController.getFullTextEntityManager( entityManager );
 
-		ftEntityManager.createIndexer( Text.class ).purgeAllOnStart( true ).optimizeAfterPurge( true ).optimizeOnFinish( true ).batchSizeToLoadIds( 1000 )
-				.batchSizeToLoadObjects( 15 ).threadsToLoadIds( 1 ).threadsToLoadObjects( 10 ).createNewIdEntityManagerAfter( 10000 ).startAndWait();
+		ftEntityManager.createIndexer( Text.class ).purgeAllOnStart( true ).optimizeAfterPurge( true ).optimizeOnFinish( true ).batchSizeToLoadIds( 50 )
+				.batchSizeToLoadObjects( 25 ).threadsToLoadIds( 1 ).threadsToLoadObjects( 15 ).createNewIdEntityManagerAfter( 100 )
+				.progressMonitor( new MassIndexerProgressMonitor() {
+
+					@Override
+					public void objectsLoaded(Class<?> entityType, int count) {
+						System.out.println( "objects loaded: " + count );
+					}
+
+					@Override
+					public void indexed(Class<?> entityType, int count) {
+						System.out.println( "indexed: " + count );
+					}
+
+					@Override
+					public void idsLoaded(Class<?> entityType, int count) {
+						System.out.println( "loaded ids: " + count );
+					}
+
+				} ).startAndWait();
 
 		System.out.println( "indexing!" );
 
