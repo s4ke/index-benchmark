@@ -26,27 +26,41 @@ import javax.persistence.Table;
 
 import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Indexed;
+import org.hibernate.search.genericjpa.annotations.InIndex;
 
 @Entity
-@Table(name="text")
-@Indexed(index="lucene-index")
+@Table(name = "text")
+@Indexed(index = "lucene-index")
+@InIndex
 public class Text {
 
 	private Integer id;
 	private String text;
 
-	@Id @Column(name="old_id")
-	public Integer getId() { return this.id; }
-	public void setId(Integer oldId) { this.id = oldId; }
+	@Id
+	@Column(name = "old_id")
+	public Integer getId() {
+		return this.id;
+	}
 
-	@Field @Column(name="old_text") @Lob
-	public String getText() { return this.text; }
-	public void setText(String oldText) { this.text = oldText; }
-	
+	public void setId(Integer oldId) {
+		this.id = oldId;
+	}
+
+	@Field
+	@Column(name = "old_text")
+	@Lob
+	public String getText() {
+		return this.text;
+	}
+
+	public void setText(String oldText) {
+		this.text = oldText;
+	}
+
 	@Override
 	public String toString() {
 		return "Text [id=" + id + ", text=" + text + "]";
 	}
 
 }
-

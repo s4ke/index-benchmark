@@ -17,36 +17,24 @@
 	</licenses>
 	<properties>
 		<slf4jVersion>1.6.1</slf4jVersion>
-		<infinispanVersion>5.0.0-SNAPSHOT</infinispanVersion>
-		<hibernateVersion>3.6.1.Final</hibernateVersion>
+		<hibernateVersion>4.3.7.Final</hibernateVersion>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 	<dependencies>
+
 		<dependency>
 			<groupId>org.hibernate</groupId>
-			<artifactId>hibernate-search</artifactId>
-			<version>3.4.0-SNAPSHOT</version>
+			<artifactId>hibernate-search-jpa</artifactId>
+			<version>0.2.0.0</version>
 		</dependency>
+
 		<dependency>
-			<groupId>org.hibernate</groupId>
-			<artifactId>hibernate-search-infinispan</artifactId>
-			<version>3.4.0-SNAPSHOT</version>
+			<groupId>javax</groupId>
+			<artifactId>javaee-api</artifactId>
+			<version>7.0</version><!--$NO-MVN-MAN-VER$ -->
+			<scope>compile</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.infinispan</groupId>
-			<artifactId>infinispan-lucene-directory</artifactId>
-			<version>${infinispanVersion}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.infinispan</groupId>
-			<artifactId>infinispan-core</artifactId>
-			<version>${infinispanVersion}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.infinispan</groupId>
-			<artifactId>infinispan-cachestore-jdbc</artifactId>
-			<version>${infinispanVersion}</version>
-		</dependency>
+
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-entitymanager</artifactId>
@@ -60,7 +48,7 @@
 		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
-			<version>5.1.15</version>
+			<version>5.1.34</version>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -92,8 +80,8 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>2.3.2</version>
 				<configuration>
-					<source>1.6</source>
-					<target>1.6</target>
+					<source>1.8</source>
+					<target>1.8</target>
 				</configuration>
 			</plugin>
 			<plugin>

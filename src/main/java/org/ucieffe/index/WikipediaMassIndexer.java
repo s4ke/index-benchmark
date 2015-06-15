@@ -18,15 +18,20 @@
  */
 package org.ucieffe.index;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+import java.util.Random;
+
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.FlushModeType;
 import javax.persistence.Persistence;
 
-import org.hibernate.CacheMode;
-import org.hibernate.search.batchindexing.MassIndexerProgressMonitor;
-import org.hibernate.search.impl.SimpleIndexingProgressMonitor;
+import org.hibernate.search.genericjpa.JPASearchFactoryController;
+import org.hibernate.search.genericjpa.Setup;
+import org.hibernate.search.genericjpa.db.events.MySQLTriggerSQLStringSource;
 import org.hibernate.search.jpa.FullTextEntityManager;
-import org.hibernate.search.jpa.Search;
 import org.ucieffe.model.Text;
 
 /**
@@ -37,24 +42,73 @@ import org.ucieffe.model.Text;
  */
 public class WikipediaMassIndexer {
 
-	public static void main(String[] args) {
+	private static final int WORDS = 5_000;
+	private static final int WORDS_PER_TEXT = 10_000;
 
-		EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory( "wikipedia" );
+	private static final boolean SETUP = false;
+
+	private static void setup(EntityManagerFactory entityManagerFactory) {
 		EntityManager entityManager = entityManagerFactory.createEntityManager();
-		FullTextEntityManager ftEntityManager = Search.getFullTextEntityManager( entityManager );
+		entityManager.setFlushMode( FlushModeType.AUTO );
+		entityManager.getTransaction().begin();
+		for ( int i = 0; i < WORDS; ++i ) {
+			Text text = new Text();
+			text.setId( i );
+			text.setText( generateRandomText( WORDS_PER_TEXT ) );
+			entityManager.persist( text );
+			if ( i % 1000 == 0 ) {
+				entityManager.flush();
+				entityManager.getTransaction().commit();
+				entityManager.getTransaction().begin();
+			}
+			System.out.println( "Text: " + i );
+		}
+		entityManager.getTransaction().commit();
+		entityManager.close();
 
-		MassIndexerProgressMonitor monitor = new SimpleIndexingProgressMonitor( 5000 );
-		ftEntityManager.createIndexer( Text.class )
-			.purgeAllOnStart( true )
-			.optimizeAfterPurge( true )
-			.optimizeOnFinish( true )
-//			.limitIndexedObjectsTo( 10000 ) // to try it out without waiting 30 minutes
-			.batchSizeToLoadObjects( 35 )
-			.threadsForSubsequentFetching( 3 )
-			.threadsToLoadObjects( 8 )
-			.threadsForIndexWriter( 6 )
-			.progressMonitor( monitor )
-			.cacheMode( CacheMode.IGNORE )
-			.start();
+		System.out.println( "setup complete!" );
 	}
+
+	public static void main(String[] args) throws IOException, InterruptedException {
+		EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory( "massindexer-test" );
+		if ( SETUP ) {
+			setup( entityManagerFactory );
+		}
+
+		EntityManager entityManager = entityManagerFactory.createEntityManager();
+
+		Properties properties = new Properties();
+		try (InputStream is = WikipediaMassIndexer.class.getResourceAsStream( "/hsearch.properties" )) {
+			properties.load( is );
+		}
+		properties.setProperty( "org.hibernate.search.genericjpa.searchfactory.name", "test" );
+		properties.setProperty( "org.hibernate.search.genericjpa.searchfactory.triggerSource", MySQLTriggerSQLStringSource.class.getName() );
+		properties.setProperty( "org.hibernate.search.genericjpa.searchfactory.type", "sql" );
+		JPASearchFactoryController searchFactoryController = Setup.createUnmanagedSearchFactory( entityManagerFactory, properties, null );
+
+		FullTextEntityManager ftEntityManager = searchFactoryController.getFullTextEntityManager( entityManager );
+
+		ftEntityManager.createIndexer( Text.class ).purgeAllOnStart( true ).optimizeAfterPurge( true ).optimizeOnFinish( true ).batchSizeToLoadIds( 400 )
+				.batchSizeToLoadObjects( 2 ).threadsToLoadIds( 1 ).threadsToLoadObjects( 2 ).createNewIdEntityManagerAfter( 400 ).startAndWait();
+
+		System.out.println( "indexing!" );
+
+		ftEntityManager.close();
+		entityManagerFactory.close();
+	}
+
+	public static String generateRandomText(int numberOfWords) {
+		StringBuilder builder = new StringBuilder();
+		Random random = new Random();
+		for ( int i = 0; i < numberOfWords; i++ ) {
+			char[] word = new char[random.nextInt( 4 ) + 15]; // words of length 3 through 10. (1 and 2 letter words are
+																// boring.)
+			for ( int j = 0; j < word.length; j++ ) {
+				word[j] = (char) ( 'a' + random.nextInt( 26 ) );
+			}
+			builder.append( word ).append( " " );
+		}
+		return builder.toString();
+	}
+
 }
