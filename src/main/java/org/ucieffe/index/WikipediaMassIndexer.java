@@ -88,8 +88,8 @@ public class WikipediaMassIndexer {
 
 		FullTextEntityManager ftEntityManager = searchFactoryController.getFullTextEntityManager( entityManager );
 
-		ftEntityManager.createIndexer( Text.class ).purgeAllOnStart( true ).optimizeAfterPurge( true ).optimizeOnFinish( true ).batchSizeToLoadIds( 400 )
-				.batchSizeToLoadObjects( 2 ).threadsToLoadIds( 1 ).threadsToLoadObjects( 2 ).createNewIdEntityManagerAfter( 400 ).startAndWait();
+		ftEntityManager.createIndexer( Text.class ).purgeAllOnStart( true ).optimizeAfterPurge( true ).optimizeOnFinish( true ).batchSizeToLoadIds( 1000 )
+				.batchSizeToLoadObjects( 15 ).threadsToLoadIds( 1 ).threadsToLoadObjects( 10 ).createNewIdEntityManagerAfter( 10000 ).startAndWait();
 
 		System.out.println( "indexing!" );
 
