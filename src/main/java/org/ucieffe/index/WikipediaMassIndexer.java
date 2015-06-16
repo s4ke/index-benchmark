@@ -43,8 +43,8 @@ import org.ucieffe.model.Text;
  */
 public class WikipediaMassIndexer {
 
-	private static final int WORDS = 5_000;
-	private static final int WORDS_PER_TEXT = 1000;
+	private static final int TEXT_COUNT = 5_000;
+	private static final int WORDS_PER_TEXT = 10_000;
 
 	private static final boolean SETUP = true;
 
@@ -57,13 +57,14 @@ public class WikipediaMassIndexer {
 
 		entityManager.setFlushMode( FlushModeType.AUTO );
 		entityManager.getTransaction().begin();
-		for ( int i = 0; i < WORDS; ++i ) {
+		for ( int i = 0; i < TEXT_COUNT; ++i ) {
 			Text text = new Text();
 			text.setId( i );
 			text.setText( generateRandomText( WORDS_PER_TEXT ) );
 			entityManager.persist( text );
 			if ( i % 1000 == 0 ) {
 				entityManager.flush();
+				entityManager.clear();
 				entityManager.getTransaction().commit();
 				entityManager.getTransaction().begin();
 			}
@@ -104,13 +105,18 @@ public class WikipediaMassIndexer {
 					}
 
 					@Override
-					public void indexed(Class<?> entityType, int count) {
-						System.out.println( "indexed: " + count );
+					public void idsLoaded(Class<?> entityType, int count) {
+						System.out.println( "loaded ids: " + count );
 					}
 
 					@Override
-					public void idsLoaded(Class<?> entityType, int count) {
-						System.out.println( "loaded ids: " + count );
+					public void documentsBuilt(Class<?> entityType, int count) {
+						System.out.println( "documents built: " + count );
+					}
+
+					@Override
+					public void documentsAdded(int count) {
+						System.out.println( "documents added: " + count );
 					}
 
 				} ).startAndWait();
@@ -118,7 +124,7 @@ public class WikipediaMassIndexer {
 		System.out.println( "indexing complete!" );
 
 		ftEntityManager.close();
-		
+
 		searchFactoryController.close();
 		entityManagerFactory.close();
 	}
