@@ -22,6 +22,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 import java.util.Random;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -43,43 +46,55 @@ import org.ucieffe.model.Text;
  */
 public class WikipediaMassIndexer {
 
-	private static final int TEXT_COUNT = 5_000;
-	private static final int WORDS_PER_TEXT = 10_000;
+	private static final int THREADS_FOR_SETUP = 10;
+	private static final int TEXT_PER_THREAD = 5000;
+	private static final int TEXT_COUNT = TEXT_PER_THREAD * THREADS_FOR_SETUP;
 
+	private static CountDownLatch latch = new CountDownLatch( THREADS_FOR_SETUP );
+
+	private static final int WORDS_PER_TEXT = 1_000;
 	private static final boolean SETUP = true;
 
 	private static void setup(EntityManagerFactory entityManagerFactory) {
-		EntityManager entityManager = entityManagerFactory.createEntityManager();
+		ExecutorService exec = Executors.newFixedThreadPool( THREADS_FOR_SETUP );
+		for ( int i = 0; i < THREADS_FOR_SETUP; ++i ) {
+			int startId = i * TEXT_PER_THREAD;
+			exec.submit( () -> {
+				EntityManager entityManager = entityManagerFactory.createEntityManager();
 
-		entityManager.getTransaction().begin();
-		entityManager.createQuery( "DELETE FROM Text" ).executeUpdate();
-		entityManager.getTransaction().commit();
-
-		entityManager.setFlushMode( FlushModeType.AUTO );
-		entityManager.getTransaction().begin();
-		for ( int i = 0; i < TEXT_COUNT; ++i ) {
-			Text text = new Text();
-			text.setId( i );
-			text.setText( generateRandomText( WORDS_PER_TEXT ) );
-			entityManager.persist( text );
-			if ( i % 1000 == 0 ) {
-				entityManager.flush();
-				entityManager.clear();
-				entityManager.getTransaction().commit();
 				entityManager.getTransaction().begin();
-			}
-			System.out.println( "Text: " + i );
-		}
-		entityManager.getTransaction().commit();
-		entityManager.close();
+				entityManager.createQuery( "DELETE FROM Text" ).executeUpdate();
+				entityManager.getTransaction().commit();
 
-		System.out.println( "setup complete!" );
+				entityManager.setFlushMode( FlushModeType.AUTO );
+				entityManager.getTransaction().begin();
+				for ( int textNumber = 0; textNumber < TEXT_PER_THREAD; ++textNumber ) {
+					Text text = new Text();
+					text.setId( startId + textNumber );
+					text.setText( generateRandomText( WORDS_PER_TEXT ) );
+					entityManager.persist( text );
+					if ( textNumber % 1000 == 0 ) {
+						entityManager.flush();
+						entityManager.clear();
+						entityManager.getTransaction().commit();
+						entityManager.getTransaction().begin();
+					}
+					System.out.println( "Text: " + ( startId + textNumber ) );
+				}
+				entityManager.getTransaction().commit();
+				entityManager.close();
+
+				latch.countDown();
+				System.out.println( "setup complete!" );
+			} );
+		}
 	}
 
 	public static void main(String[] args) throws IOException, InterruptedException {
 		EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory( "massindexer-test" );
 		if ( SETUP ) {
 			setup( entityManagerFactory );
+			latch.await();
 		}
 
 		EntityManager entityManager = entityManagerFactory.createEntityManager();
@@ -95,8 +110,8 @@ public class WikipediaMassIndexer {
 
 		FullTextEntityManager ftEntityManager = searchFactoryController.getFullTextEntityManager( entityManager );
 
-		ftEntityManager.createIndexer( Text.class ).purgeAllOnStart( true ).optimizeAfterPurge( true ).optimizeOnFinish( true ).batchSizeToLoadIds( 50 )
-				.batchSizeToLoadObjects( 10 ).threadsToLoadIds( 1 ).threadsToLoadObjects( 24 ).createNewIdEntityManagerAfter( 100 )
+		ftEntityManager.createIndexer( Text.class ).purgeAllOnStart( true ).optimizeAfterPurge( true ).optimizeOnFinish( true ).batchSizeToLoadIds( 100 )
+				.batchSizeToLoadObjects( 10 ).threadsToLoadIds( 1 ).threadsToLoadObjects( 20 ).createNewIdEntityManagerAfter( 1000 )
 				.progressMonitor( new MassIndexerProgressMonitor() {
 
 					@Override
