@@ -44,12 +44,17 @@ import org.ucieffe.model.Text;
 public class WikipediaMassIndexer {
 
 	private static final int WORDS = 5_000;
-	private static final int WORDS_PER_TEXT = 10_000;
+	private static final int WORDS_PER_TEXT = 1000;
 
-	private static final boolean SETUP = false;
+	private static final boolean SETUP = true;
 
 	private static void setup(EntityManagerFactory entityManagerFactory) {
 		EntityManager entityManager = entityManagerFactory.createEntityManager();
+
+		entityManager.getTransaction().begin();
+		entityManager.createQuery( "DELETE FROM Text" ).executeUpdate();
+		entityManager.getTransaction().commit();
+
 		entityManager.setFlushMode( FlushModeType.AUTO );
 		entityManager.getTransaction().begin();
 		for ( int i = 0; i < WORDS; ++i ) {
@@ -90,7 +95,7 @@ public class WikipediaMassIndexer {
 		FullTextEntityManager ftEntityManager = searchFactoryController.getFullTextEntityManager( entityManager );
 
 		ftEntityManager.createIndexer( Text.class ).purgeAllOnStart( true ).optimizeAfterPurge( true ).optimizeOnFinish( true ).batchSizeToLoadIds( 50 )
-				.batchSizeToLoadObjects( 25 ).threadsToLoadIds( 1 ).threadsToLoadObjects( 15 ).createNewIdEntityManagerAfter( 100 )
+				.batchSizeToLoadObjects( 10 ).threadsToLoadIds( 1 ).threadsToLoadObjects( 24 ).createNewIdEntityManagerAfter( 100 )
 				.progressMonitor( new MassIndexerProgressMonitor() {
 
 					@Override
@@ -110,9 +115,11 @@ public class WikipediaMassIndexer {
 
 				} ).startAndWait();
 
-		System.out.println( "indexing!" );
+		System.out.println( "indexing complete!" );
 
 		ftEntityManager.close();
+		
+		searchFactoryController.close();
 		entityManagerFactory.close();
 	}
 
