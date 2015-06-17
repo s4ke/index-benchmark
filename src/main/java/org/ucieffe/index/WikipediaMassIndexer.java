@@ -111,7 +111,7 @@ public class WikipediaMassIndexer {
 		FullTextEntityManager ftEntityManager = searchFactoryController.getFullTextEntityManager( entityManager );
 
 		ftEntityManager.createIndexer( Text.class ).purgeAllOnStart( true ).optimizeAfterPurge( true ).optimizeOnFinish( true ).batchSizeToLoadIds( 100 )
-				.batchSizeToLoadObjects( 10 ).threadsToLoadIds( 1 ).threadsToLoadObjects( 20 ).createNewIdEntityManagerAfter( 1000 )
+				.batchSizeToLoadObjects( 10 ).threadsToLoadIds( 1 ).threadsToLoadObjects( 20 )
 				.progressMonitor( new MassIndexerProgressMonitor() {
 
 					@Override
